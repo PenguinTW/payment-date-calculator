@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>收款日計算機</title>
+    <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/0/0a/Penguin_Rookery_-_South_Georgia_-_April_2006.jpg" type="image/jpeg">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -16,48 +17,68 @@
         }
         h2 {
             color: #444;
+            margin-bottom: 20px;
         }
-        label, input, button {
+        label, input, select, button {
             display: block;
-            width: 100%;
-            margin-bottom: 10px;
+            width: 80%;
+            margin: 10px auto;
             font-size: 1.2em;
         }
-        input {
-            padding: 8px;
+        input, select {
+            padding: 10px;
             border: 1px solid #aaa;
             border-radius: 5px;
             background-color: #fff;
+            width: 100%;
+            text-align: center; /* Center-align number text */
+            box-sizing: border-box; /* Include border and padding in width calculation */
         }
-        .button-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .button-group button {
-            padding: 10px;
+        button {
+            padding: 12px;
             background-color: rgb(175, 150, 120);
             color: white;
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            font-size: 1.2em;
+            width: 80%;
+            margin: 20px auto;
+            box-sizing: border-box; /* Ensure button width matches input */
         }
-        .button-group button:hover, .button-group button.active {
+        button:hover {
             background-color: rgb(145, 125, 100);
         }
-        @media (max-width: 400px) {
-            .button-group {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            .button-group button {
-                flex: 1;
-            }
+        .settlement-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .settlement-buttons button {
+            margin-bottom: 10px;
+            width: 80%;
+            box-sizing: border-box; /* Ensure button width matches input */
+        }
+        .settlement-buttons.horizontal {
+            flex-direction: row;
+        }
+        .settlement-buttons button.selected {
+            background-color: rgb(145, 125, 100);
         }
         p {
             font-size: 1.2em;
             font-weight: bold;
+        }
+
+        /* For responsive design */
+        @media (max-width: 600px) {
+            .settlement-buttons {
+                flex-direction: row;
+            }
+            .settlement-buttons button {
+                margin: 0 5px;
+            }
         }
     </style>
     <script>
@@ -66,15 +87,9 @@
             document.getElementById("billingDate").value = today;
         }
 
-        function selectSettlementType(type) {
-            document.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(type).classList.add('active');
-            document.getElementById("settlementType").value = type;
-        }
-
         function calculatePaymentDate() {
             let billingDate = new Date(document.getElementById("billingDate").value);
-            let settlementType = document.getElementById("settlementType").value;
+            let settlementType = document.querySelector(".settlement-buttons button.selected").value;
             let settlementDay = parseInt(document.getElementById("settlementDay").value);
             let creditDays = parseInt(document.getElementById("creditDays").value);
             let paymentDay = parseInt(document.getElementById("paymentDay").value);
@@ -104,24 +119,27 @@
             document.getElementById("result").innerText = "實際撥款日: " + disbursementDate.toISOString().split('T')[0];
         }
 
-        window.onload = function() {
-            setDefaultBillingDate();
-            selectSettlementType('monthly');
+        function selectSettlementType(type) {
+            let buttons = document.querySelectorAll(".settlement-buttons button");
+            buttons.forEach(button => {
+                button.classList.remove("selected");
+            });
+            document.getElementById(type).classList.add("selected");
         }
+
+        window.onload = setDefaultBillingDate;
     </script>
 </head>
 <body>
     <h2>收款日計算機</h2>
     <label>請款日: <input type="date" id="billingDate"></label>
-    <label>結帳方式:</label>
-    <div class="button-group">
-        <button id="current" onclick="selectSettlementType('current')">當下結</button>
-        <button id="monthly" class="active" onclick="selectSettlementType('monthly')">月結</button>
-        <button id="nextMonth" onclick="selectSettlementType('nextMonth')">次月結</button>
+    <div class="settlement-buttons">
+        <button id="current" value="current" onclick="selectSettlementType('current')">當下結</button>
+        <button id="monthly" class="selected" value="monthly" onclick="selectSettlementType('monthly')">月結</button>
+        <button id="nextMonth" value="nextMonth" onclick="selectSettlementType('nextMonth')">次月結</button>
     </div>
-    <input type="hidden" id="settlementType" value="monthly">
-    <label>應入賬天數(月結XX): <input type="number" id="creditDays" value="60"></label>
     <label>結帳日: <input type="number" id="settlementDay" value="25"></label>
+    <label>應入賬天數: <input type="number" id="creditDays" value="60"></label>
     <label>付款日: <input type="number" id="paymentDay" value="5"></label>
     <button onclick="calculatePaymentDate()">計算</button>
     <p id="result"></p>
