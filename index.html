@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>收款日計算機</title>
+    <script>
+        function calculatePaymentDate() {
+            let billingDate = new Date(document.getElementById("billingDate").value);
+            let billingType = document.getElementById("billingType").value;
+            let closingDay = parseInt(document.getElementById("closingDay").value);
+            let accountDays = parseInt(document.getElementById("accountDays").value);
+            let paymentDays = [5, 20]; // 假設撥款日在每月5號和20號
+
+            let closingDate = new Date(billingDate);
+            closingDate.setDate(closingDay);
+
+            if (billingDate.getDate() > closingDay) {
+                closingDate.setMonth(closingDate.getMonth() + (billingType === "次月結" ? 2 : 1));
+            } else if (billingType === "次月結") {
+                closingDate.setMonth(closingDate.getMonth() + 1);
+            }
+            
+            let fundInDate = new Date(closingDate);
+            fundInDate.setDate(fundInDate.getDate() + accountDays);
+
+            let payoutDate = new Date(fundInDate);
+            let nextPayout = paymentDays.find(day => day >= fundInDate.getDate());
+            
+            if (nextPayout !== undefined) {
+                payoutDate.setDate(nextPayout);
+            } else {
+                payoutDate.setMonth(payoutDate.getMonth() + 1);
+                payoutDate.setDate(paymentDays[0]);
+            }
+
+            document.getElementById("result").innerText = `實際撥款日: ${payoutDate.toISOString().split('T')[0]}`;
+        }
+    </script>
+</head>
+<body>
+    <h2>收款日計算機</h2>
+    <label>請款日: <input type="date" id="billingDate"></label><br>
+    <label>結帳方式:
+        <select id="billingType">
+            <option value="當下結">當下結</option>
+            <option value="月結" selected>月結</option>
+            <option value="次月結">次月結</option>
+        </select>
+    </label><br>
+    <label>結帳日: <input type="number" id="closingDay" min="1" max="31" value="25"></label><br>
+    <label>應入賬天數: <input type="number" id="accountDays" min="0" value="60"></label><br>
+    <button onclick="calculatePaymentDate()">計算撥款日</button>
+    <p id="result"></p>
+</body>
+</html>
